@@ -1,0 +1,203 @@
+services:
+  redis-master:
+    image: redis:7.4.1
+    restart: always
+    container_name: redis-master
+    hostname: redis-master
+    volumes:
+      - ./data/master:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--repl-diskless-load",
+        "on-empty-db",
+        "--replica-announce-ip",
+        "172.38.0.11",
+        "--replica-announce-port",
+        "6379",
+        "--protected-mode",
+        "no"
+      ]
+    networks:
+      redis_network:
+        ipv4_address: 172.38.0.11
+
+  redis-slave-1:
+    image: redis:7.4.1
+    restart: always
+    container_name: redis-slave-1
+    hostname: redis-slave-1
+    depends_on:
+      - redis-master
+    volumes:
+      - ./data/slave1:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--replicaof",
+        "172.38.0.11",
+        "6379",
+        "--repl-diskless-load",
+        "on-empty-db",
+        "--replica-announce-ip",
+        "172.38.0.12",
+        "--replica-announce-port",
+        "6379",
+        "--protected-mode",
+        "no"
+      ]
+    networks:
+      redis_network:
+        ipv4_address: 172.38.0.12
+
+  redis-slave-2:
+    image: redis:7.4.1
+    restart: always
+    container_name: redis-slave-2
+    hostname: redis-slave-2
+    depends_on:
+      - redis-master
+    volumes:
+      - ./data/slave2:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--replicaof",
+        "172.38.0.11",
+        "6379",
+        "--repl-diskless-load",
+        "on-empty-db",
+        "--replica-announce-ip",
+        "172.38.0.13",
+        "--replica-announce-port",
+        "6379",
+        "--protected-mode",
+        "no"
+      ]
+    networks:
+      redis_network:
+        ipv4_address: 172.38.0.13
+
+  redis-slave-3:
+    image: redis:7.4.1
+    restart: always
+    container_name: redis-slave-3
+    hostname: redis-slave-3
+    depends_on:
+      - redis-master
+    volumes:
+      - ./data/slave3:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--replicaof",
+        "172.38.0.11",
+        "6379",
+        "--repl-diskless-load",
+        "on-empty-db",
+        "--replica-announce-ip",
+        "172.38.0.18",
+        "--replica-announce-port",
+        "6379",
+        "--protected-mode",
+        "no"
+      ]
+    networks:
+      redis_network:
+        ipv4_address: 172.38.0.18
+
+  sentinel-1:
+    image: redis:latest
+    restart: always
+    container_name: sentinel-1
+    hostname: sentinel-1
+    depends_on:
+      - redis-master
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.38.0.11 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel resolve-hostnames no" >> /etc/sentinel.conf &&
+            echo "sentinel down-after-milliseconds mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+            redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis_network:
+        ipv4_address: 172.38.0.14
+
+  sentinel-2:
+    image: redis:latest
+    restart: always
+    container_name: sentinel-2
+    hostname: sentinel-2
+    depends_on:
+      - redis-master
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.38.0.11 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel resolve-hostnames no" >> /etc/sentinel.conf &&
+            echo "sentinel down-after-milliseconds mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+            redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis_network:
+        ipv4_address: 172.38.0.15
+
+  sentinel-3:
+    image: redis:latest
+    restart: always
+    container_name: sentinel-3
+    hostname: sentinel-3
+    depends_on:
+      - redis-master
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.38.0.11 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel resolve-hostnames no" >> /etc/sentinel.conf &&
+            echo "sentinel down-after-milliseconds mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+            redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis_network:
+        ipv4_address: 172.38.0.16
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    ports:
+      - "5540:5540"
+    networks:
+      redis_network:
+        ipv4_address: 172.38.0.17
+
+  haproxy:
+    image: haproxy:2.2.33
+    restart: always
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 26379:26379
+      - 1936:1936
+    networks:
+      - redis_network
+
+volumes:
+  redisinsight:
+
+networks:
+  redis_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.38.0.0/16
+          gateway: 172.38.0.1
