@@ -5,7 +5,7 @@ services:
     container_name: redis-master
     hostname: redis-master
     volumes:
-      - ./data/master:/data
+      - redis-data:/data
     command:
       [
         "redis-server",
@@ -32,7 +32,7 @@ services:
     depends_on:
       - redis-master
     volumes:
-      - ./data/slave1:/data
+      - redis-data:/data
     command:
       [
         "redis-server",
@@ -62,7 +62,7 @@ services:
     depends_on:
       - redis-master
     volumes:
-      - ./data/slave2:/data
+      - redis-data:/data
     command:
       [
         "redis-server",
@@ -92,7 +92,7 @@ services:
     depends_on:
       - redis-master
     volumes:
-      - ./data/slave3:/data
+      - redis-data:/data
     command:
       [
         "redis-server",
@@ -192,7 +192,7 @@ services:
       - redis_network
 
 volumes:
-  redisinsight:
+  redis-data:
 
 networks:
   redis_network:
