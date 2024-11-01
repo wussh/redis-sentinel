@@ -186,7 +186,7 @@ services:
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
-      - 26379:26379
+      - 6379:6379
       - 1936:1936
     networks:
       - redis_network
