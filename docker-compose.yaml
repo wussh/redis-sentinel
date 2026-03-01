@@ -181,7 +181,7 @@ services:
         ipv4_address: 172.38.0.17
 
   haproxy:
-    image: haproxy:2.2.33
+    image: haproxy:2.9.15
     restart: always
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
