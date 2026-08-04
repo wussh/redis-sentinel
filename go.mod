@@ -2,7 +2,7 @@ module redis-tutor
 
 go 1.23.1
 
-require github.com/go-redis/redis/v8 v8.11.5
+require github.com/go-redis/redis/v9 v9.22.0
 
 require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
